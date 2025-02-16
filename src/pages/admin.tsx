@@ -117,7 +117,7 @@ export default function Admin() {
                   onChange={(e) =>
                     setQuestion({
                       ...question,
-                      text: e.target.value,
+                      optionA: e.target.value,
                     })
                   }
                   label="Option A"
@@ -136,7 +136,7 @@ export default function Admin() {
                   onChange={(e) =>
                     setQuestion({
                       ...question,
-                      text: e.target.value,
+                      optionB: e.target.value,
                     })
                   }
                   required
@@ -154,7 +154,7 @@ export default function Admin() {
                   onChange={(e) =>
                     setQuestion({
                       ...question,
-                      text: e.target.value,
+                      optionC: e.target.value,
                     })
                   }
                   required
@@ -172,7 +172,7 @@ export default function Admin() {
                   onChange={(e) =>
                     setQuestion({
                       ...question,
-                      text: e.target.value,
+                      optionD: e.target.value,
                     })
                   }
                   required
