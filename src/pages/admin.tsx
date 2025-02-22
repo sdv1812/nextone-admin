@@ -1,5 +1,5 @@
 // pages/admin.js
-import { IQuestion } from "@/interfaces";
+import { IQuestion } from "interfaces";
 import {
   Box,
   Button,
@@ -11,12 +11,16 @@ import {
   Radio,
   RadioGroup,
   Select,
+  Snackbar,
   TextField,
   Typography,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getQuestions, saveQuestion } from "service/QuestionService";
+import { AxiosError } from "axios";
+import dayjs from "dayjs";
 
 export default function Admin() {
   const [question, setQuestion] = useState<IQuestion>({
@@ -31,8 +35,15 @@ export default function Admin() {
     category: "general",
     difficulty: "",
   });
+  const [error, setError] = useState<AxiosError>();
 
-
+  useEffect(() => {
+    getQuestions().then((questions) => {
+      setQuestions(questions);
+    }).catch((error: AxiosError) => {
+      setError(error);
+    });
+  }, []);
 
   const rows: IQuestion[] = [
     {
@@ -46,26 +57,31 @@ export default function Admin() {
       explanation: "Paris is the capital of France.",
       category: "general",
       difficulty: "easy",
-    }
+    },
   ];
 
   const [questions, setQuestions] = useState<IQuestion[]>(rows);
 
   const addQuestion = () => {
-    setQuestions([...questions, question]);
+    saveQuestion(question)
+      .then((question) => {
+        setQuestions([...questions, question]);
+      })
+      .catch((error: AxiosError) => {
+        setError(error);
+      });
   };
 
   const columns: GridColDef[] = [
-    { field: "id", headerName: "ID", width: 100 },
     { field: "text", headerName: "Question", width: 300 },
     { field: "optionA", headerName: "Option A", width: 150 },
     { field: "optionB", headerName: "Option B", width: 150 },
     { field: "optionC", headerName: "Option C", width: 150 },
     { field: "optionD", headerName: "Option D", width: 150 },
     { field: "correctOption", headerName: "Correct Option", width: 150 },
-    { field: "explanation", headerName: "Explanation", width: 300 },
     { field: "category", headerName: "Category", width: 150 },
     { field: "difficulty", headerName: "Difficulty", width: 150 },
+    { field: "createdAt", valueFormatter: (value: Date) => dayjs(value).format("DD/MMM/YYYY HH:mm:ss"), headerName: "Created At", width: 150 },
   ];
   return (
     <Box
@@ -254,7 +270,9 @@ export default function Admin() {
               </FormControl>
             </Grid>
             <Grid size={3}>
-              <Button onClick={addQuestion} variant="contained">Add question</Button>
+              <Button onClick={() => addQuestion()} variant="contained">
+                Add question
+              </Button>
             </Grid>
           </Grid>
         </form>
@@ -265,6 +283,11 @@ export default function Admin() {
       <Box style={{ flex: 1 }}>
         <DataGrid rows={questions} columns={columns} />
       </Box>
+      <Snackbar
+        open={!!error}
+        autoHideDuration={5000}
+        message="This Snackbar will be dismissed in 5 seconds."
+      />
     </Box>
   );
 }

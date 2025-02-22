@@ -9,4 +9,5 @@ export interface IQuestion {
   explanation?: string;
   category?: string;
   difficulty?: string;
+  createdAt?: Date;
 }
