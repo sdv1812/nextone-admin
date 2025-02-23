@@ -9,7 +9,7 @@ const properties: Record<environment, Properties> = {
         backend_url: 'http://localhost:3002',
     },
     production: {
-        backend_url: 'http://ec2-54-206-86-214.ap-southeast-2.compute.amazonaws.com:3002',
+        backend_url: 'https://api.vermaworks.com',
     },
     test: {
         backend_url: 'http://localhost:8080',
