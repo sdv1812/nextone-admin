@@ -38,11 +38,13 @@ export default function Admin() {
   const [error, setError] = useState<AxiosError>();
 
   useEffect(() => {
-    getQuestions().then((questions) => {
-      setQuestions(questions);
-    }).catch((error: AxiosError) => {
-      setError(error);
-    });
+    getQuestions()
+      .then((questions) => {
+        setQuestions(questions);
+      })
+      .catch((error: AxiosError) => {
+        setError(error);
+      });
   }, []);
 
   const rows: IQuestion[] = [
@@ -81,7 +83,13 @@ export default function Admin() {
     { field: "correctOption", headerName: "Correct Option", width: 150 },
     { field: "category", headerName: "Category", width: 150 },
     { field: "difficulty", headerName: "Difficulty", width: 150 },
-    { field: "createdAt", valueFormatter: (value: Date) => dayjs(value).format("DD/MMM/YYYY HH:mm:ss"), headerName: "Created At", width: 150 },
+    {
+      field: "createdAt",
+      valueFormatter: (value: Date) =>
+        dayjs(value).format("DD/MMM/YYYY HH:mm:ss"),
+      headerName: "Created At",
+      width: 150,
+    },
   ];
   return (
     <Box
@@ -241,11 +249,14 @@ export default function Admin() {
                   }
                   label="Category"
                 >
-                  <MenuItem value="general">General</MenuItem>
-                  <MenuItem value="math">Math</MenuItem>
-                  <MenuItem value="science">Science</MenuItem>
-                  <MenuItem value="history">History</MenuItem>
-                  <MenuItem value="english">English</MenuItem>
+                  <MenuItem value="Neurology">Neurology</MenuItem>
+                  <MenuItem value="Cardiology">Cardiology</MenuItem>
+                  <MenuItem value="Haematology">Haematology</MenuItem>
+                  <MenuItem value="Chest diseases">Chest diseases</MenuItem>
+                  <MenuItem value="Gastroenterology">Gastroenterology</MenuItem>
+                  <MenuItem value="Endocrinology">Endocrinology</MenuItem>
+                  <MenuItem value="Rheumatology">Rheumatology</MenuItem>
+                  <MenuItem value="General">General</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
