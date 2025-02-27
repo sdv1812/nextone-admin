@@ -1,3 +1,20 @@
+export enum Category {
+  General = "General",
+  Neurology = "Neurology",
+  Cardiology = "Cardiology",
+  Haematology = "Haematology",
+  ChestDiseases = "Chest diseases",
+  Gastroenterology = "Gastroenterology",
+  Endocrinology = "Endocrinology",
+  Rheumatology = "Rheumatology",
+}
+
+export enum Difficulty {
+  Easy = "Easy",
+  Medium = "Medium",
+  Hard = "Hard",
+}
+
 export interface IQuestion {
   id: string;
   text: string;
@@ -7,7 +24,7 @@ export interface IQuestion {
   optionD: string;
   correctOption: string;
   explanation?: string;
-  category?: string;
-  difficulty?: string;
+  category?: Category;
+  difficulty?: Difficulty;
   createdAt?: Date;
 }

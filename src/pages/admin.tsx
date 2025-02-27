@@ -21,6 +21,7 @@ import { useEffect, useState } from "react";
 import { getQuestions, saveQuestion } from "service/QuestionService";
 import { AxiosError } from "axios";
 import dayjs from "dayjs";
+import { Category, Difficulty } from "interfaces/IQuestion";
 
 export default function Admin() {
   const [question, setQuestion] = useState<IQuestion>({
@@ -32,8 +33,8 @@ export default function Admin() {
     optionD: "",
     correctOption: "",
     explanation: "",
-    category: "general",
-    difficulty: "",
+    category: Category.General,
+    difficulty: Difficulty.Easy,
   });
   const [error, setError] = useState<AxiosError>();
 
@@ -47,22 +48,7 @@ export default function Admin() {
       });
   }, []);
 
-  const rows: IQuestion[] = [
-    {
-      id: "1",
-      text: "What is the capital of France?",
-      optionA: "Paris",
-      optionB: "London",
-      optionC: "Berlin",
-      optionD: "Rome",
-      correctOption: "1a",
-      explanation: "Paris is the capital of France.",
-      category: "general",
-      difficulty: "easy",
-    },
-  ];
-
-  const [questions, setQuestions] = useState<IQuestion[]>(rows);
+  const [questions, setQuestions] = useState<IQuestion[]>([]);
 
   const addQuestion = () => {
     saveQuestion(question)
@@ -245,18 +231,15 @@ export default function Admin() {
                   value={question.category}
                   id="question-category"
                   onChange={(e) =>
-                    setQuestion({ ...question, category: e.target.value })
+                    setQuestion({ ...question, category: e.target.value as Category })
                   }
                   label="Category"
                 >
-                  <MenuItem value="Neurology">Neurology</MenuItem>
-                  <MenuItem value="Cardiology">Cardiology</MenuItem>
-                  <MenuItem value="Haematology">Haematology</MenuItem>
-                  <MenuItem value="Chest diseases">Chest diseases</MenuItem>
-                  <MenuItem value="Gastroenterology">Gastroenterology</MenuItem>
-                  <MenuItem value="Endocrinology">Endocrinology</MenuItem>
-                  <MenuItem value="Rheumatology">Rheumatology</MenuItem>
-                  <MenuItem value="General">General</MenuItem>
+                  {Object.values(Category).map((category) => (
+                    <MenuItem key={category} value={category}>
+                      {category}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Grid>
@@ -270,13 +253,17 @@ export default function Admin() {
                   value={question.difficulty}
                   id="question-difficulty"
                   onChange={(e) =>
-                    setQuestion({ ...question, difficulty: e.target.value })
+                    setQuestion({ ...question, difficulty: e.target.value as Difficulty })
                   }
                   label="Difficulty"
                 >
-                  <MenuItem value="easy">Easy</MenuItem>
-                  <MenuItem value="medium">Medium</MenuItem>
-                  <MenuItem value="hard">Hard</MenuItem>
+                  {
+                    Object.values(Difficulty).map((difficulty) => (
+                      <MenuItem key={difficulty} value={difficulty}>
+                        {difficulty}
+                      </MenuItem>
+                    ))
+                  }
                 </Select>
               </FormControl>
             </Grid>
