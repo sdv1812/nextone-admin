@@ -5,6 +5,7 @@ import {
   Button,
   FormControl,
   FormControlLabel,
+  FormHelperText,
   FormLabel,
   InputLabel,
   MenuItem,
@@ -22,6 +23,8 @@ import { getQuestions, saveQuestion } from "service/QuestionService";
 import { AxiosError } from "axios";
 import dayjs from "dayjs";
 import { Category, Difficulty } from "interfaces/IQuestion";
+import MDEditor from "@uiw/react-md-editor";
+import { uploadQuestionImages } from "service/QuestionService";
 
 export default function Admin() {
   const [question, setQuestion] = useState<IQuestion>({
@@ -36,6 +39,10 @@ export default function Admin() {
     category: Category.General,
     difficulty: Difficulty.Easy,
   });
+
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string>("");
   const [error, setError] = useState<AxiosError>();
 
   useEffect(() => {
@@ -208,19 +215,74 @@ export default function Admin() {
                 <FormControlLabel value="D" control={<Radio />} label="D" />
               </RadioGroup>
             </Grid>
+            {/* Image upload section */}
             <Grid size={12}>
               <FormControl fullWidth>
-                <TextField
-                  value={question.explanation}
-                  id="question-explanation"
-                  aria-describedby="my-helper-text"
-                  label="Explanation"
-                  onChange={(e) =>
-                    setQuestion({ ...question, explanation: e.target.value })
-                  }
-                  required
-                  multiline
+                <FormLabel>Upload Images (for explanation)</FormLabel>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  style={{ margin: "12px 0" }}
+                  onChange={async (e) => {
+                    const files = Array.from(e.target.files || []);
+                    if (files.length === 0) return;
+                    setUploading(true);
+                    setUploadError("");
+                    try {
+                      const urls = await uploadQuestionImages(files);
+                      setUploadedImages((prev) => [...prev, ...urls]);
+                    } catch (_error) {
+                      setUploadError("Failed to upload images");
+                    }
+                    setUploading(false);
+                  }}
                 />
+                {uploading && <FormHelperText>Uploading...</FormHelperText>}
+                {uploadError && <FormHelperText error>{uploadError}</FormHelperText>}
+                {uploadedImages.length > 0 && (
+                  <Box style={{ marginTop: "12px" }}>
+                    <Typography variant="subtitle2">Uploaded Images:</Typography>
+                    {uploadedImages.map((url, idx) => (
+                      <Box key={url} style={{ display: "flex", alignItems: "center", marginBottom: "8px" }}>
+                        <img src={url} alt={`uploaded-${idx}`} style={{ maxWidth: 80, maxHeight: 80, marginRight: 8, borderRadius: 4, border: "1px solid #ccc" }} />
+                        <TextField
+                          value={url}
+                          size="small"
+                          InputProps={{ readOnly: true }}
+                          style={{ marginRight: 8, width: 300 }}
+                        />
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => {
+                            navigator.clipboard.writeText(url);
+                          }}
+                        >Copy URL</Button>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+              </FormControl>
+            </Grid>
+            <Grid size={12}>
+              <FormControl fullWidth>
+                <FormLabel id="question-explanation-label">
+                  Explanation
+                </FormLabel>
+                <MDEditor
+                  value={question.explanation}
+                  onChange={(value) =>
+                  setQuestion({ ...question, explanation: value || "" })
+                  }
+                  height={400}
+                  data-color-mode="light"
+                />
+                {question.explanation === "" && (
+                  <FormHelperText error={question.explanation === ""}>
+                    Required field.
+                  </FormHelperText>
+                )}
               </FormControl>
             </Grid>
             <Grid size={6}>

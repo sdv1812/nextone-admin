@@ -24,6 +24,8 @@ export interface IQuestion {
   optionD: string;
   correctOption: string;
   explanation?: string;
+  explanationImages?: string[];
+  questionImages?: string[];
   category?: Category;
   difficulty?: Difficulty;
   createdAt?: Date;
