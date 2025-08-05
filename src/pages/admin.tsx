@@ -57,14 +57,31 @@ export default function Admin() {
 
   const [questions, setQuestions] = useState<IQuestion[]>([]);
 
-  const addQuestion = () => {
-    saveQuestion(question)
-      .then((question) => {
-        setQuestions([...questions, question]);
-      })
-      .catch((error: AxiosError) => {
-        setError(error);
-      });
+  const [adding, setAdding] = useState(false);
+  const initialQuestion: IQuestion = {
+    id: "",
+    text: "",
+    optionA: "",
+    optionB: "",
+    optionC: "",
+    optionD: "",
+    correctOption: "",
+    explanation: "",
+    category: Category.General,
+    difficulty: Difficulty.Easy,
+  };
+  const addQuestion = async () => {
+    if (adding) return;
+    setAdding(true);
+    try {
+      const newQuestion = await saveQuestion(question);
+      setQuestions([...questions, newQuestion]);
+      setQuestion(initialQuestion);
+      setUploadedImages([]);
+    } catch (error) {
+      setError(error as AxiosError);
+    }
+    setAdding(false);
   };
 
   const columns: GridColDef[] = [
@@ -330,7 +347,12 @@ export default function Admin() {
               </FormControl>
             </Grid>
             <Grid size={3}>
-              <Button onClick={() => addQuestion()} variant="contained">
+              <Button
+                onClick={addQuestion}
+                variant="contained"
+                disabled={adding}
+                loading={adding}
+              >
                 Add question
               </Button>
             </Grid>
@@ -346,7 +368,7 @@ export default function Admin() {
       <Snackbar
         open={!!error}
         autoHideDuration={5000}
-        message="This Snackbar will be dismissed in 5 seconds."
+        message={error?.message || "An error occurred while fetching questions."}
       />
     </Box>
   );
