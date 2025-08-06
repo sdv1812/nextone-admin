@@ -16,9 +16,9 @@ export const getQuestions = async (): Promise<IQuestion[]> => {
     return response.data;
 }
 
-export const uploadQuestionImages = async (images: File[]): Promise<string[]> => {
+const uploadImages = async (images: File[], type: 'question' | 'explanation'): Promise<string[]> => {
     const properties = getProperties();
-    const url = `${properties.backend_url}/questions/media/upload?type=question`;
+    const url = `${properties.backend_url}/questions/media/upload?type=${type}`;
     const formData = new FormData();
     images.forEach((image) => {
         formData.append("files", image);
@@ -28,23 +28,15 @@ export const uploadQuestionImages = async (images: File[]): Promise<string[]> =>
             "Content-Type": "multipart/form-data",
         },
     });
-    console.log("Uploaded question images:", response.data);
     return response.data?.urls ?? [];
 }
 
+export const uploadQuestionImages = async (images: File[]): Promise<string[]> => {
+    return uploadImages(images, 'question');
+}
+
 export const uploadExplanationImages = async (images: File[]): Promise<string[]> => {
-    const properties = getProperties();
-    const url = `${properties.backend_url}/questions/media/upload?type=explanation`;
-    const formData = new FormData();
-    images.forEach((image) => {
-        formData.append("files", image);
-    });
-    const response = await axios.post(url, formData, {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        },
-    });
-    return response.data?.urls ?? [];
+    return uploadImages(images, 'explanation');
 }
 
 export const deleteQuestion = async (id: string): Promise<void> => {

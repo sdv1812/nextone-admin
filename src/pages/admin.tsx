@@ -20,7 +20,7 @@ import {
 import Grid from "@mui/material/Grid2";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
-import { getQuestions, saveQuestion } from "service/QuestionService";
+import { getQuestions, saveQuestion, uploadExplanationImages } from "service/QuestionService";
 import { AxiosError } from "axios";
 import dayjs from "dayjs";
 import { Category, Difficulty } from "interfaces/IQuestion";
@@ -356,7 +356,7 @@ export default function Admin() {
                         setUploadingImgsExp(true);
                         setUploadErrorImgsExp("");
                         try {
-                          const urls = await uploadQuestionImages(files);
+                          const urls = await uploadExplanationImages(files);
                           setUploadedImgsExp((prev) => [...prev, ...urls]);
                         } catch (_error) {
                           setUploadErrorImgsExp("Failed to upload images");
