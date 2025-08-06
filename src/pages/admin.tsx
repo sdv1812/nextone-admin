@@ -1,6 +1,7 @@
 // pages/admin.js
 import { IQuestion } from "interfaces";
 import {
+  Alert,
   Box,
   Button,
   FormControl,
@@ -40,9 +41,15 @@ export default function Admin() {
     difficulty: Difficulty.Easy,
   });
 
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string>("");
+  const [uploadedImgsExp, setUploadedImgsExp] = useState<string[]>([]);
+  const [uploadingImgsExp, setUploadingImgsExp] = useState(false);
+  const [uploadErrorImgsExp, setUploadErrorImgsExp] = useState<string>("");
+
+  const [uploadedImgsQuestions, setUploadedImgsQuestions] = useState<string[]>([]);
+  const [uploadingImgsQuestions, setUploadingImgsQuestions] = useState(false);
+  const [uploadErrorImgsQuestions, setUploadErrorImgsQuestions] = useState<string>("");
+
+
   const [error, setError] = useState<AxiosError>();
 
   useEffect(() => {
@@ -77,7 +84,10 @@ export default function Admin() {
       const newQuestion = await saveQuestion(question);
       setQuestions([...questions, newQuestion]);
       setQuestion(initialQuestion);
-      setUploadedImages([]);
+      setUploadedImgsExp([]);
+      setUploadedImgsQuestions([]);
+      setUploadErrorImgsExp("");
+      setUploadErrorImgsQuestions("");
     } catch (error) {
       setError(error as AxiosError);
     }
@@ -127,18 +137,108 @@ export default function Admin() {
         <form>
           <Grid container spacing={2}>
             <Grid size={12}>
-              <FormControl fullWidth required>
-                <TextField
-                  onChange={(e) =>
-                    setQuestion({ ...question, text: e.target.value })
-                  }
+              <FormControl fullWidth>
+                <FormLabel>Upload Images (for question) if any</FormLabel>
+
+                <label htmlFor="image-upload-input-question">
+                  <Button
+                    variant="outlined"
+                    component="span"
+                    disabled={uploadingImgsExp}
+                    style={{ margin: "12px 0" }}
+                  >
+                    <input
+                      id="image-upload-input-question"
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={async (e) => {
+                        const files = Array.from(e.target.files || []);
+                        if (files.length === 0) return;
+                        setUploadingImgsQuestions(true);
+                        setUploadErrorImgsQuestions("");
+                        try {
+                          const urls = await uploadQuestionImages(files);
+                          setUploadedImgsQuestions((prev) => [...prev, ...urls]);
+                        } catch (_error) {
+                          setUploadErrorImgsQuestions("Failed to upload images");
+                        }
+                        setUploadingImgsQuestions(false);
+                      }}
+                    />
+                    {uploadingImgsQuestions ? "Uploading..." : "Upload Images"}
+                  </Button>
+                </label>
+                {uploadingImgsQuestions && <FormHelperText>Uploading...</FormHelperText>}
+                {uploadErrorImgsQuestions && (
+                  <FormHelperText error>{uploadErrorImgsQuestions}</FormHelperText>
+                )}
+                {uploadedImgsQuestions.length > 0 && (
+                  <Box style={{ marginTop: "12px" }}>
+                    <Typography variant="subtitle2">
+                      Uploaded Images:
+                    </Typography>
+                    {uploadedImgsQuestions.map((url, idx) => (
+                      <Box
+                        key={url}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          marginBottom: "8px",
+                        }}
+                      >
+                        <Box
+                          component="img"
+                          src={url}
+                          alt={`uploaded-${idx}`}
+                          style={{
+                            maxWidth: 100,
+                            maxHeight: 100,
+                            marginRight: 8,
+                            borderRadius: 4,
+                            border: "1px solid #ccc",
+                          }}
+                        />
+                        <TextField
+                          value={url}
+                          size="small"
+                          InputProps={{ readOnly: true }}
+                          style={{ marginRight: 8, width: 300 }}
+                        />
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => {
+                            navigator.clipboard.writeText(url);
+                          }}
+                        >
+                          Copy URL
+                        </Button>
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+              </FormControl>
+            </Grid>
+            <Grid size={12}>
+              <FormControl fullWidth>
+                <FormLabel id="question-label">
+                  Question Text
+                </FormLabel>
+                <MDEditor
                   value={question.text}
-                  id="question-text"
-                  aria-describedby="my-helper-text"
-                  label="Question"
-                  multiline
-                  required
+                  onChange={(value) =>
+                    setQuestion({ ...question, text: value || "" })
+                  }
+                  height={200}
+                  data-color-mode="light"
                 />
+                {question.text === "" && (
+                  <FormHelperText error={question.text === ""}>
+                    Required field.
+                  </FormHelperText>
+                )}
               </FormControl>
             </Grid>
 
@@ -235,34 +335,68 @@ export default function Admin() {
             {/* Image upload section */}
             <Grid size={12}>
               <FormControl fullWidth>
-                <FormLabel>Upload Images (for explanation)</FormLabel>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  style={{ margin: "12px 0" }}
-                  onChange={async (e) => {
-                    const files = Array.from(e.target.files || []);
-                    if (files.length === 0) return;
-                    setUploading(true);
-                    setUploadError("");
-                    try {
-                      const urls = await uploadQuestionImages(files);
-                      setUploadedImages((prev) => [...prev, ...urls]);
-                    } catch (_error) {
-                      setUploadError("Failed to upload images");
-                    }
-                    setUploading(false);
-                  }}
-                />
-                {uploading && <FormHelperText>Uploading...</FormHelperText>}
-                {uploadError && <FormHelperText error>{uploadError}</FormHelperText>}
-                {uploadedImages.length > 0 && (
+                <FormLabel>Upload Images (for explanation) if any</FormLabel>
+
+                <label htmlFor="image-upload-input">
+                  <Button
+                    variant="outlined"
+                    component="span"
+                    disabled={uploadingImgsExp}
+                    style={{ margin: "12px 0" }}
+                  >
+                    <input
+                      id="image-upload-input"
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={async (e) => {
+                        const files = Array.from(e.target.files || []);
+                        if (files.length === 0) return;
+                        setUploadingImgsExp(true);
+                        setUploadErrorImgsExp("");
+                        try {
+                          const urls = await uploadQuestionImages(files);
+                          setUploadedImgsExp((prev) => [...prev, ...urls]);
+                        } catch (_error) {
+                          setUploadErrorImgsExp("Failed to upload images");
+                        }
+                        setUploadingImgsExp(false);
+                      }}
+                    />
+                    {uploadingImgsExp ? "Uploading..." : "Upload Images"}
+                  </Button>
+                </label>
+                {uploadingImgsExp && <FormHelperText>Uploading...</FormHelperText>}
+                {uploadErrorImgsExp && (
+                  <FormHelperText error>{uploadErrorImgsExp}</FormHelperText>
+                )}
+                {uploadedImgsExp.length > 0 && (
                   <Box style={{ marginTop: "12px" }}>
-                    <Typography variant="subtitle2">Uploaded Images:</Typography>
-                    {uploadedImages.map((url, idx) => (
-                      <Box key={url} style={{ display: "flex", alignItems: "center", marginBottom: "8px" }}>
-                        <img src={url} alt={`uploaded-${idx}`} style={{ maxWidth: 80, maxHeight: 80, marginRight: 8, borderRadius: 4, border: "1px solid #ccc" }} />
+                    <Typography variant="subtitle2">
+                      Uploaded Images:
+                    </Typography>
+                    {uploadedImgsExp.map((url, idx) => (
+                      <Box
+                        key={url}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          marginBottom: "8px",
+                        }}
+                      >
+                        <Box
+                          component="img"
+                          src={url}
+                          alt={`uploaded-${idx}`}
+                          style={{
+                            maxWidth: 100,
+                            maxHeight: 100,
+                            marginRight: 8,
+                            borderRadius: 4,
+                            border: "1px solid #ccc",
+                          }}
+                        />
                         <TextField
                           value={url}
                           size="small"
@@ -275,7 +409,9 @@ export default function Admin() {
                           onClick={() => {
                             navigator.clipboard.writeText(url);
                           }}
-                        >Copy URL</Button>
+                        >
+                          Copy URL
+                        </Button>
                       </Box>
                     ))}
                   </Box>
@@ -290,7 +426,7 @@ export default function Admin() {
                 <MDEditor
                   value={question.explanation}
                   onChange={(value) =>
-                  setQuestion({ ...question, explanation: value || "" })
+                    setQuestion({ ...question, explanation: value || "" })
                   }
                   height={400}
                   data-color-mode="light"
@@ -310,7 +446,10 @@ export default function Admin() {
                   value={question.category}
                   id="question-category"
                   onChange={(e) =>
-                    setQuestion({ ...question, category: e.target.value as Category })
+                    setQuestion({
+                      ...question,
+                      category: e.target.value as Category,
+                    })
                   }
                   label="Category"
                 >
@@ -332,17 +471,18 @@ export default function Admin() {
                   value={question.difficulty}
                   id="question-difficulty"
                   onChange={(e) =>
-                    setQuestion({ ...question, difficulty: e.target.value as Difficulty })
+                    setQuestion({
+                      ...question,
+                      difficulty: e.target.value as Difficulty,
+                    })
                   }
                   label="Difficulty"
                 >
-                  {
-                    Object.values(Difficulty).map((difficulty) => (
-                      <MenuItem key={difficulty} value={difficulty}>
-                        {difficulty}
-                      </MenuItem>
-                    ))
-                  }
+                  {Object.values(Difficulty).map((difficulty) => (
+                    <MenuItem key={difficulty} value={difficulty}>
+                      {difficulty}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Grid>
@@ -368,8 +508,15 @@ export default function Admin() {
       <Snackbar
         open={!!error}
         autoHideDuration={5000}
-        message={error?.message || "An error occurred while fetching questions."}
-      />
+        onClose={() => setError(undefined)}
+      >
+        <Alert 
+          severity="error"
+          onClose={() => setError(undefined)}
+        >
+          {error?.message || "An error occurred while fetching questions."}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
